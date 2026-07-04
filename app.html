@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Compass | بوصلة البحث</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600;1,700&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --teal-deep:#11302d; --teal:#1c4541; --teal-light:#2d5d57;
+    --sage:#9db595; --sage-soft:#c9d8c3;
+    --terracotta:#d97a55; --cream:#f6f1e7; --cream-dim:#cdd9d2;
+    --frost:rgba(255,255,255,0.07); --frost-border:rgba(255,255,255,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Inter','Tajawal',sans-serif;
+    background:
+      radial-gradient(circle at 85% -10%, rgba(157,181,149,0.25), transparent 45%),
+      radial-gradient(circle at -10% 110%, rgba(217,122,85,0.15), transparent 40%),
+      linear-gradient(160deg, var(--teal-deep) 0%, var(--teal) 55%, var(--teal-light) 100%);
+    color:var(--cream);
+    min-height:100vh;
+    padding:0;
+    line-height:1.7;
+  }
+  html[lang="ar"] body{ font-family:'Tajawal','Inter',sans-serif; }
+
+  .decor-circle{
+    position:fixed; border-radius:50%; border:1px solid rgba(255,255,255,0.08);
+    pointer-events:none; z-index:0;
+  }
+  .dc1{ width:520px; height:520px; top:-180px; inset-inline-end:-180px; }
+  .dc2{ width:300px; height:300px; bottom:-120px; inset-inline-start:-100px; border-color:rgba(217,122,85,0.18);}
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 22px; position:relative; z-index:2;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:0.3px; color:var(--cream); opacity:0.95;}
+  .brand .mark{
+    width:30px; height:30px; border-radius:50%; border:1.5px solid var(--sage);
+    display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--sage);
+  }
+  .lang-switch{ display:flex; gap:6px; background:var(--frost); border:1px solid var(--frost-border); border-radius:30px; padding:4px;}
+  .lang-btn{
+    border:none; background:transparent; padding:6px 16px; border-radius:24px;
+    cursor:pointer; font-size:0.8rem; color:var(--cream-dim); font-weight:600;
+  }
+  .lang-btn.active{ background:var(--cream); color:var(--teal-deep); }
+
+  .wrap{ max-width:740px; margin:0 auto; padding:10px 20px 60px; position:relative; z-index:2; }
+
+  .eyebrow{
+    text-transform:uppercase; letter-spacing:2.5px; font-size:0.7rem; color:var(--sage);
+    font-weight:600; margin-bottom:10px;
+  }
+  h1{
+    font-family:'Playfair Display', serif; font-style:italic; font-weight:600;
+    font-size:2.1rem; color:var(--cream); margin:0 0 10px; line-height:1.25;
+  }
+  html[lang="ar"] h1{ font-style:normal; font-family:'Tajawal', serif; font-weight:700; }
+  .sub{ color:var(--cream-dim); font-size:0.98rem; max-width:520px; margin-bottom:30px;}
+
+  /* Stepper */
+  .stepper{ display:flex; align-items:center; gap:6px; margin-bottom:30px; }
+  .step-dot{
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:0.75rem; font-weight:700; border:1.5px solid var(--frost-border); color:var(--cream-dim);
+    background:var(--frost); flex-shrink:0; transition:all .3s;
+  }
+  .step-dot.active{ background:var(--terracotta); border-color:var(--terracotta); color:#fff; }
+  .step-dot.done{ background:var(--sage); border-color:var(--sage); color:var(--teal-deep); }
+  .step-line{ flex:1; height:1px; background:var(--frost-border); }
+
+  .card{
+    background:var(--frost); border:1px solid var(--frost-border); border-radius:18px;
+    padding:26px; margin-bottom:18px; backdrop-filter:blur(6px);
+  }
+  .q-label{
+    font-size:1.05rem; font-weight:600; color:var(--cream); margin-bottom:16px; display:block;
+  }
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:12px;
+    border:1.5px solid var(--frost-border); background:rgba(255,255,255,0.03);
+    cursor:pointer; transition:all .2s; font-size:0.92rem; color:var(--cream-dim);
+  }
+  .opt:hover{ border-color:var(--sage); }
+  .opt.selected{ border-color:var(--terracotta); background:rgba(217,122,85,0.12); color:var(--cream); }
+  .opt .radio{
+    width:18px; height:18px; border-radius:50%; border:1.5px solid var(--cream-dim);
+    flex-shrink:0; position:relative;
+  }
+  .opt.selected .radio{ border-color:var(--terracotta); }
+  .opt.selected .radio::after{
+    content:''; position:absolute; inset:3px; background:var(--terracotta); border-radius:50%;
+  }
+
+  input[type=text]{
+    width:100%; padding:14px 16px; border-radius:12px; border:1.5px solid var(--frost-border);
+    background:rgba(255,255,255,0.05); color:var(--cream); font-size:0.95rem; font-family:inherit;
+  }
+  input[type=text]::placeholder{ color:rgba(246,241,231,0.4); }
+  input[type=text]:focus{ outline:none; border-color:var(--sage); }
+  .hint{ font-size:0.8rem; color:var(--cream-dim); margin-top:8px; opacity:0.8; }
+
+  .nav-row{ display:flex; justify-content:space-between; gap:12px; margin-top:6px; }
+  .btn{
+    border:none; padding:13px 26px; border-radius:30px; font-size:0.95rem; cursor:pointer;
+    font-weight:700; font-family:inherit; transition:transform .15s, opacity .15s;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--terracotta); color:#fff; }
+  .btn-primary:hover{ opacity:0.92; }
+  .btn-ghost{ background:transparent; color:var(--cream-dim); border:1.5px solid var(--frost-border); }
+  .btn-ghost:hover{ color:var(--cream); border-color:var(--sage); }
+  .btn:disabled{ opacity:0.35; cursor:not-allowed; }
+
+  .hidden{ display:none !important; }
+
+  /* Results view */
+  .summary-bar{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;
+  }
+  .pill{
+    background:var(--frost); border:1px solid var(--frost-border); border-radius:30px;
+    padding:6px 14px; font-size:0.78rem; color:var(--sage-soft);
+  }
+  .progress-track{ background:rgba(255,255,255,0.08); border-radius:20px; height:8px; overflow:hidden; margin:6px 0 6px; }
+  .progress-fill{ background:linear-gradient(90deg,var(--sage),var(--terracotta)); height:100%; width:0%; transition:width .4s; }
+  .progress-text{ font-size:0.8rem; color:var(--cream-dim); margin-bottom:26px; }
+
+  .chapter{
+    border:1px solid var(--frost-border); border-radius:16px; margin-bottom:14px; overflow:hidden;
+    background:rgba(255,255,255,0.04);
+  }
+  .chapter-head{
+    display:flex; align-items:center; gap:14px; padding:18px 20px; cursor:pointer;
+  }
+  .chapter-num{
+    width:36px; height:36px; border-radius:50%; border:1.5px solid var(--sage);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Playfair Display',serif; font-style:italic; color:var(--sage-soft); font-size:1rem;
+  }
+  html[lang="ar"] .chapter-num{ font-style:normal; font-family:'Tajawal',sans-serif; font-weight:700; }
+  .chapter-info{ flex:1; }
+  .chapter-info h3{ margin:0 0 2px; font-size:1rem; color:var(--cream); font-weight:600; }
+  .chapter-badge{ font-size:0.72rem; color:var(--cream-dim); }
+  .chevron{ color:var(--cream-dim); font-size:0.8rem; transition:transform .25s; }
+  .chapter.open .chevron{ transform:rotate(90deg); }
+
+  .chapter-body{ padding:0 20px 18px 56px; }
+  html[dir="rtl"] .chapter-body{ padding:0 56px 18px 20px; }
+  .sec{ padding:10px 0; border-top:1px solid rgba(255,255,255,0.06); }
+  .sec:first-child{ border-top:none; }
+  .sec-head{ display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+  .sec-head input{ margin-top:4px; accent-color:var(--terracotta); width:16px; height:16px; cursor:pointer; }
+  .sec-title{ font-weight:600; font-size:0.9rem; color:var(--cream); }
+  .sec-title.done{ text-decoration:line-through; color:var(--cream-dim); opacity:0.6; }
+  .sec-guidance{ font-size:0.82rem; color:var(--cream-dim); margin-top:5px; margin-inline-start:26px; }
+
+  .note-box{
+    border-inline-start:3px solid var(--terracotta); padding:14px 16px; margin-top:18px;
+    background:rgba(217,122,85,0.08); border-radius:0 12px 12px 0; font-size:0.85rem; color:var(--cream-dim);
+  }
+  html[dir="ltr"] .note-box{ border-inline-start:3px solid var(--terracotta); border-radius:12px 0 0 12px;}
+
+  .write-toggle{
+    background:transparent; border:1px solid var(--frost-border); color:var(--sage-soft);
+    font-size:0.72rem; padding:4px 12px; border-radius:20px; cursor:pointer; font-family:inherit;
+    margin-top:8px; margin-inline-start:26px;
+  }
+  .write-toggle:hover{ border-color:var(--sage); color:var(--cream); }
+  .write-toggle.has-content{ border-color:var(--sage); color:var(--sage); }
+
+  .page-editor-wrap{
+    margin-top:12px; margin-inline-start:26px; margin-inline-end:6px;
+  }
+  .page-editor{
+    background:#fdfcf8; color:#2b2b2b; border-radius:6px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.25);
+    padding:1in 0.9in;
+    min-height:260px;
+    font-family:'Times New Roman', serif; font-size:13px; line-height:2;
+    outline:none;
+  }
+  @media (max-width:520px){
+    .page-editor{ padding:28px 18px; font-size:13px; }
+  }
+  .page-editor:empty::before{
+    content: attr(data-placeholder); color:#9a9a90;
+  }
+  .save-status{
+    font-size:0.7rem; color:var(--cream-dim); margin-top:6px; margin-inline-start:26px; opacity:0.7;
+  }
+
+  .phrase-toggle{
+    background:transparent; border:1px solid var(--frost-border); color:var(--sage-soft);
+    font-size:0.72rem; padding:4px 12px; border-radius:20px; cursor:pointer; font-family:inherit;
+    margin-top:8px; margin-inline-start:8px;
+  }
+  .phrase-toggle:hover{ border-color:var(--sage); color:var(--cream); }
+
+  /* Claude AI assistant */
+  .claude-btn{
+    background:linear-gradient(135deg, #d97a55, #c9663f);
+    border:none; color:#fff; font-size:0.72rem; padding:4px 12px;
+    border-radius:20px; cursor:pointer; font-family:inherit; margin-top:8px; margin-inline-start:8px;
+    font-weight:600; letter-spacing:0.3px;
+  }
+  .claude-btn:hover{ opacity:0.88; }
+  .claude-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  .claude-box{
+    margin-top:10px; margin-inline-start:26px; margin-inline-end:6px;
+    background:rgba(217,122,85,0.1); border:1px solid rgba(217,122,85,0.3);
+    border-radius:12px; padding:14px 16px;
+  }
+  .claude-label{
+    font-size:0.72rem; color:var(--terracotta); font-weight:600;
+    letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px;
+  }
+  .claude-output{
+    font-family:'Times New Roman',serif; font-size:0.88rem; color:var(--cream);
+    line-height:1.9; white-space:pre-wrap;
+  }
+  .claude-actions{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .claude-accept{
+    background:var(--sage); color:var(--teal-deep); border:none;
+    padding:5px 14px; border-radius:16px; font-size:0.75rem; font-weight:700;
+    cursor:pointer; font-family:inherit;
+  }
+  .claude-accept:hover{ opacity:0.85; }
+  .claude-discard{
+    background:transparent; color:var(--cream-dim); border:1px solid var(--frost-border);
+    padding:5px 14px; border-radius:16px; font-size:0.75rem; cursor:pointer; font-family:inherit;
+  }
+  .claude-discard:hover{ color:var(--cream); }
+  .claude-spinner{
+    display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-inline-end:6px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .phrase-list{
+    margin-top:10px; margin-inline-start:26px; display:flex; flex-direction:column; gap:6px;
+  }
+  .phrase-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:rgba(255,255,255,0.04); border:1px solid var(--frost-border); border-radius:10px;
+    padding:8px 12px; font-size:0.8rem; color:var(--cream-dim); direction:ltr; text-align:left;
+  }
+  .phrase-copy{
+    background:rgba(157,181,149,0.15); border:1px solid var(--sage); color:var(--sage-soft);
+    border-radius:16px; padding:3px 10px; font-size:0.7rem; cursor:pointer; flex-shrink:0; font-family:inherit;
+  }
+  .phrase-copy:hover{ background:var(--sage); color:var(--teal-deep); }
+  .phrase-copy.copied{ background:var(--terracotta); border-color:var(--terracotta); color:#fff; }
+
+
+  /* Word Counter */
+  .word-counter{
+    font-size:0.72rem; color:var(--cream-dim); margin-top:5px;
+    margin-inline-start:26px; opacity:0.75; display:flex; align-items:center; gap:6px;
+  }
+  .word-counter .wc-num{
+    background:rgba(157,181,149,0.15); border:1px solid rgba(157,181,149,0.3);
+    color:var(--sage-soft); padding:2px 8px; border-radius:10px; font-weight:600; font-size:0.7rem;
+  }
+  .total-wc-bar{
+    background:var(--frost); border:1px solid var(--frost-border); border-radius:12px;
+    padding:10px 16px; margin-bottom:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .total-wc-label{ font-size:0.8rem; color:var(--cream-dim); }
+  .total-wc-num{
+    font-size:1.1rem; font-weight:700; color:var(--sage-soft);
+    font-family:'Playfair Display', serif; font-style:italic;
+  }
+  html[lang="ar"] .total-wc-num{ font-style:normal; font-family:'Tajawal',sans-serif; }
+  .total-wc-target{ font-size:0.75rem; color:var(--cream-dim); opacity:0.7; }
+
+  @media (max-width:520px){
+    h1{ font-size:1.6rem; }
+    .card{ padding:18px; }
+  }
+
+  /* ── Tab bar ── */
+  .tab-bar{
+    display:flex; gap:4px; padding:0 22px; position:relative; z-index:2;
+    border-bottom:1px solid var(--frost-border);
+  }
+  .tab-btn{
+    border:none; background:transparent; color:var(--cream-dim);
+    padding:10px 20px; font-size:0.88rem; font-weight:600; cursor:pointer;
+    border-bottom:2px solid transparent; font-family:inherit;
+    transition:all .2s; margin-bottom:-1px;
+  }
+  .tab-btn.active{ color:var(--cream); border-bottom-color:var(--terracotta); }
+  .tab-btn:hover:not(.active){ color:var(--cream); }
+
+  /* ── Login Screen ── */
+  .login-screen{
+    position:fixed; inset:0; z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    background:
+      radial-gradient(circle at 80% 10%, rgba(157,181,149,0.2), transparent 45%),
+      radial-gradient(circle at 10% 90%, rgba(217,122,85,0.15), transparent 40%),
+      linear-gradient(160deg, var(--teal-deep) 0%, var(--teal) 60%, var(--teal-light) 100%);
+  }
+  .login-box{
+    width:100%; max-width:420px;
+    background:rgba(255,255,255,0.06); border:1px solid var(--frost-border);
+    border-radius:28px; padding:40px 36px; backdrop-filter:blur(12px);
+    box-shadow:0 24px 64px rgba(0,0,0,0.35);
+  }
+  .login-logo{
+    display:flex; align-items:center; gap:10px; margin-bottom:28px; justify-content:center;
+  }
+  .login-logo .mark{
+    width:38px; height:38px; border-radius:50%; border:2px solid var(--sage);
+    display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--sage);
+  }
+  .login-logo-text{
+    font-family:'Playfair Display',serif; font-style:italic; font-size:1.4rem; color:var(--cream);
+  }
+  html[lang="ar"] .login-logo-text{ font-style:normal; font-family:'Tajawal',sans-serif; }
+
+  .login-tabs{
+    display:flex; background:rgba(255,255,255,0.06); border-radius:30px;
+    padding:4px; margin-bottom:26px;
+  }
+  .login-tab{
+    flex:1; border:none; background:transparent; color:var(--cream-dim);
+    padding:9px; border-radius:26px; cursor:pointer; font-size:0.88rem;
+    font-weight:600; font-family:inherit; transition:all .2s;
+  }
+  .login-tab.active{ background:var(--terracotta); color:#fff; }
+
+  .login-field{ margin-bottom:14px; }
+  .login-field label{
+    display:block; font-size:0.78rem; color:var(--sage-soft);
+    font-weight:600; margin-bottom:5px; letter-spacing:0.3px;
+  }
+  .login-field input{
+    width:100%; padding:13px 16px; border-radius:12px;
+    border:1px solid var(--frost-border); background:rgba(255,255,255,0.07);
+    color:var(--cream); font-size:0.92rem; font-family:inherit; transition:border .2s;
+  }
+  .login-field input::placeholder{ color:rgba(205,217,210,0.35); }
+  .login-field input:focus{ outline:none; border-color:var(--sage); background:rgba(255,255,255,0.1); }
+
+  .login-btn{
+    width:100%; padding:14px; background:var(--terracotta); color:#fff;
+    border:none; border-radius:30px; font-size:1rem; font-weight:700;
+    cursor:pointer; font-family:inherit; margin-top:8px;
+    transition:opacity .2s; letter-spacing:0.3px;
+  }
+  .login-btn:hover{ opacity:0.9; }
+  .login-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .login-error{
+    color:#f28b6e; font-size:0.8rem; text-align:center;
+    margin-top:10px; min-height:18px;
+  }
+  .login-footer{
+    text-align:center; margin-top:18px; font-size:0.78rem; color:var(--cream-dim);
+  }
+  .login-divider{
+    display:flex; align-items:center; gap:10px; margin:18px 0 14px;
+    color:var(--cream-dim); font-size:0.75rem;
+  }
+  .login-divider::before,.login-divider::after{
+    content:''; flex:1; height:1px; background:var(--frost-border);
+  }
+
+  /* ── Onboarding overlay ── */
+  .onboarding-overlay{
+    position:fixed; inset:0; background:rgba(17,48,45,0.97);
+    z-index:100; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .onboarding-card{
+    background:rgba(255,255,255,0.06); border:1px solid var(--frost-border);
+    border-radius:24px; padding:36px 32px; max-width:480px; width:100%;
+    backdrop-filter:blur(10px);
+  }
+  .onboarding-card .eyebrow{ margin-bottom:8px; }
+  .onboarding-card h2{
+    font-family:'Playfair Display',serif; font-style:italic;
+    font-size:1.6rem; color:var(--cream); margin:0 0 6px;
+  }
+  html[lang="ar"] .onboarding-card h2{ font-style:normal; font-family:'Tajawal',sans-serif; }
+  .onboarding-card p{ color:var(--cream-dim); font-size:0.88rem; margin:0 0 24px; }
+  .ob-field{ margin-bottom:14px; }
+  .ob-field label{ display:block; font-size:0.8rem; color:var(--sage-soft); font-weight:600; margin-bottom:5px; }
+  .ob-field input, .ob-field select{
+    width:100%; padding:11px 14px; border-radius:10px;
+    border:1px solid var(--frost-border); background:rgba(255,255,255,0.06);
+    color:var(--cream); font-size:0.9rem; font-family:inherit;
+  }
+  .ob-field input::placeholder{ color:rgba(205,217,210,0.4); }
+  .ob-field input:focus, .ob-field select:focus{ outline:none; border-color:var(--sage); }
+  .ob-field select option{ background:#1c4541; color:var(--cream); }
+
+  /* ── Dashboard ── */
+  .dash-wrap{ padding:24px 22px 60px; position:relative; z-index:2; max-width:740px; margin:0 auto; }
+  .dash-hero{
+    background:rgba(255,255,255,0.05); border:1px solid var(--frost-border);
+    border-radius:20px; padding:24px; margin-bottom:18px; position:relative; overflow:hidden;
+  }
+  .dash-hero::before{
+    content:''; position:absolute; top:-40px; inset-inline-end:-40px;
+    width:180px; height:180px; border-radius:50%;
+    background:radial-gradient(circle, rgba(157,181,149,0.15), transparent 70%);
+  }
+  .dash-greeting{ font-size:0.78rem; color:var(--sage-soft); font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .dash-thesis-title{
+    font-family:'Playfair Display',serif; font-style:italic;
+    font-size:1.25rem; color:var(--cream); margin:0 0 12px; line-height:1.4;
+  }
+  html[lang="ar"] .dash-thesis-title{ font-style:normal; font-family:'Tajawal',sans-serif; }
+  .dash-meta{ display:flex; gap:10px; flex-wrap:wrap; }
+  .dash-meta-pill{
+    font-size:0.76rem; color:var(--cream-dim); background:rgba(255,255,255,0.06);
+    border:1px solid var(--frost-border); border-radius:20px; padding:4px 12px;
+  }
+  .dash-edit-btn{
+    position:absolute; top:16px; inset-inline-end:16px;
+    background:transparent; border:1px solid var(--frost-border); color:var(--cream-dim);
+    font-size:0.72rem; padding:4px 12px; border-radius:16px; cursor:pointer; font-family:inherit;
+  }
+  .dash-edit-btn:hover{ color:var(--cream); border-color:var(--sage); }
+  .dash-logout-btn{
+    background:transparent; border:1px solid rgba(217,122,85,0.35);
+    color:var(--terracotta); font-size:0.8rem; padding:8px 24px;
+    border-radius:20px; cursor:pointer; font-family:inherit;
+  }
+  .dash-logout-btn:hover{ background:rgba(217,122,85,0.15); }
+
+  .dash-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+  @media(max-width:520px){ .dash-grid{ grid-template-columns:1fr; } }
+  .dash-card{
+    background:rgba(255,255,255,0.04); border:1px solid var(--frost-border);
+    border-radius:16px; padding:18px;
+  }
+  .dash-card-label{ font-size:0.72rem; color:var(--sage-soft); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+  .dash-card-val{ font-size:1.6rem; font-weight:700; color:var(--cream); font-family:'Playfair Display',serif; }
+  html[lang="ar"] .dash-card-val{ font-family:'Tajawal',sans-serif; }
+  .dash-card-sub{ font-size:0.75rem; color:var(--cream-dim); margin-top:2px; }
+
+  .chapter-rings{ display:flex; flex-direction:column; gap:10px; }
+  .ring-row{ display:flex; align-items:center; gap:10px; }
+  .ring-label{ font-size:0.78rem; color:var(--cream-dim); flex:1; }
+  .ring-bar-outer{ width:120px; height:7px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; }
+  .ring-bar-inner{ height:100%; background:linear-gradient(90deg,var(--sage),var(--terracotta)); border-radius:10px; transition:width .5s; }
+  .ring-pct{ font-size:0.72rem; color:var(--sage-soft); font-weight:600; width:32px; text-align:end; }
+
+  .dash-quick{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+  .dash-quick-btn{
+    background:var(--frost); border:1px solid var(--frost-border); color:var(--cream-dim);
+    padding:10px 18px; border-radius:30px; cursor:pointer; font-size:0.85rem; font-family:inherit;
+    font-weight:600; transition:all .2s;
+  }
+  .dash-quick-btn:hover{ background:var(--terracotta); color:#fff; border-color:var(--terracotta); }
+
+  /* ── Literature Review ── */
+  .lit-wrap{ padding:20px 22px 60px; position:relative; z-index:2; max-width:100%; }
+  .lit-header{ margin-bottom:16px; }
+  .lit-header h2{
+    font-family:'Playfair Display',serif; font-style:italic;
+    font-size:1.4rem; color:var(--cream); margin:0 0 4px;
+  }
+  html[lang="ar"] .lit-header h2{ font-style:normal; font-family:'Tajawal',sans-serif; }
+  .lit-header p{ color:var(--cream-dim); font-size:0.85rem; margin:0; }
+  .lit-actions{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .lit-stats{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .stat-pill{
+    background:var(--frost); border:1px solid var(--frost-border);
+    border-radius:20px; padding:5px 13px; font-size:0.76rem; color:var(--cream-dim);
+  }
+  .stat-pill span{ color:var(--sage-soft); font-weight:700; }
+  .lit-table-wrap{
+    overflow-x:auto; border-radius:14px; border:1px solid #d0d0d0;
+    box-shadow:0 2px 12px rgba(0,0,0,0.15);
+  }
+  table.lit{
+    width:100%; border-collapse:collapse; font-size:0.8rem;
+    background:#ffffff; min-width:900px;
+  }
+  table.lit thead th{
+    background:#1c4541; color:#ffffff; padding:10px 10px;
+    font-weight:600; text-align:start; white-space:nowrap;
+    border-bottom:2px solid #9db595; font-size:0.76rem;
+    border-right:1px solid rgba(255,255,255,0.15);
+  }
+  table.lit tbody tr{ border-bottom:1px solid #e4e4e4; }
+  table.lit tbody tr:nth-child(even){ background:#f7faf8; }
+  table.lit tbody tr:hover{ background:#eef5ec; }
+  table.lit tbody td{
+    padding:6px 8px; vertical-align:top;
+    border-right:1px solid #e8e8e8; color:#2b2b2b;
+  }
+  table.lit tbody td input,
+  table.lit tbody td textarea{
+    background:transparent; border:none; color:#1a1a1a;
+    font-size:0.8rem; font-family:'Arial',sans-serif; width:100%; resize:none; outline:none;
+  }
+  table.lit tbody td input::placeholder,
+  table.lit tbody td textarea::placeholder{ color:#bbb; font-style:italic; }
+  table.lit tbody td input:focus,
+  table.lit tbody td textarea:focus{ background:rgba(157,181,149,0.08); border-radius:4px; }
+  .td-num{
+    background:#f0f7f4; color:#1c4541; font-weight:700;
+    text-align:center; width:32px; border-right:2px solid #d0d0d0 !important;
+  }
+  .row-del-btn{
+    background:transparent; border:1px solid rgba(217,122,85,0.3);
+    color:var(--terracotta); font-size:0.68rem; padding:2px 7px;
+    border-radius:12px; cursor:pointer; font-family:inherit; display:block; margin-top:4px;
+  }
+  .row-del-btn:hover{ background:rgba(217,122,85,0.15); }
+</style>
+</head>
+<body>
+
+<div class="decor-circle dc1"></div>
+<div class="decor-circle dc2"></div>
+
+<div class="topbar">
+  <div class="brand"><span class="mark">✦</span><span id="brandText">Research Compass</span></div>
+  <div class="lang-switch">
+    <button class="lang-btn" id="btnAr" onclick="setLang('ar')">العربية</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn" id="tab-home" onclick="switchTab('home')">🏠 My Research</button>
+  <button class="tab-btn active" id="tab-thesis" onclick="switchTab('thesis')">📋 Structure</button>
+  <button class="tab-btn" id="tab-lit" onclick="switchTab('lit')">📚 Literature</button>
+</div>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+
+    <!-- Language switcher inside login -->
+    <div style="display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <div class="lang-switch" style="background:rgba(255,255,255,0.08);">
+        <button class="lang-btn" id="ll-btnAr" onclick="setLangLogin('ar')">العربية</button>
+        <button class="lang-btn active" id="ll-btnEn" onclick="setLangLogin('en')">English</button>
+      </div>
+    </div>
+
+    <div class="login-logo">
+      <span class="mark">✦</span>
+      <span class="login-logo-text" id="ll-brand">بوصلة البحث</span>
+    </div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" id="lt-login" onclick="setLoginMode('login')">تسجيل الدخول</button>
+      <button class="login-tab" id="lt-register" onclick="setLoginMode('register')">إنشاء حساب</button>
+    </div>
+
+    <div id="login-form">
+      <div class="login-field">
+        <label id="ll-email">البريد الإلكتروني</label>
+        <input type="email" id="l-email" placeholder="your@email.com">
+      </div>
+      <div class="login-field">
+        <label id="ll-pass">كلمة المرور</label>
+        <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <button class="login-btn" onclick="doLogin()" id="ll-loginBtn">دخول</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <div class="login-field">
+        <label id="ll-rname">الاسم الكامل</label>
+        <input type="text" id="r-name" placeholder="اسمك الكامل">
+      </div>
+      <div class="login-field">
+        <label id="ll-remail">البريد الإلكتروني</label>
+        <input type="email" id="r-email" placeholder="your@email.com">
+      </div>
+      <div class="login-field">
+        <label id="ll-rpass">كلمة المرور</label>
+        <input type="password" id="r-pass" placeholder="٦ أحرف على الأقل">
+      </div>
+      <div class="login-field">
+        <label id="ll-rpass2">تأكيد كلمة المرور</label>
+        <input type="password" id="r-pass2" placeholder="أعد كتابة كلمة المرور" onkeydown="if(event.key==='Enter') doRegister()">
+      </div>
+      <button class="login-btn" onclick="doRegister()" id="ll-regBtn">إنشاء الحساب</button>
+      <div class="login-error" id="register-error"></div>
+    </div>
+
+    <div class="login-footer" id="ll-footer">
+      البيانات محفوظة بشكل خاص على هذا الجهاز.
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding Overlay -->
+<div class="onboarding-overlay hidden" id="onboarding">
+  <div class="onboarding-card">
+    <div class="eyebrow">Welcome to Research Compass ✦</div>
+    <h2 id="ob-title">Let's set up your research</h2>
+    <p id="ob-sub">Enter your details once — they'll appear across the whole app.</p>
+    <div class="ob-field">
+      <label id="ob-name-label">Your Name</label>
+      <input type="text" id="ob-name" placeholder="e.g. Sarah Ahmed">
+    </div>
+    <div class="ob-field">
+      <label id="ob-thesis-label">Research Title (or working title)</label>
+      <input type="text" id="ob-thesis" placeholder="e.g. The Impact of Social Media on Consumer Behavior">
+    </div>
+    <div class="ob-field">
+      <label id="ob-sup-label">Supervisor / Lead Researcher</label>
+      <input type="text" id="ob-sup" placeholder="e.g. Prof. John Smith">
+    </div>
+    <div class="ob-field">
+      <label id="ob-uni-label">University / Institution</label>
+      <input type="text" id="ob-uni" placeholder="e.g. University of Oxford">
+    </div>
+    <div class="ob-field">
+      <label id="ob-deadline-label">Target Submission Date</label>
+      <input type="date" id="ob-deadline">
+    </div>
+    <div style="margin-top:22px;">
+      <button class="btn btn-primary" style="width:100%" onclick="saveProfile()">
+        <span id="ob-btn">Get Started ✦</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Panel -->
+<div id="home-panel" class="dash-wrap hidden">
+  <div class="dash-hero">
+    <button class="dash-edit-btn" onclick="openEditProfile()" id="t-editBtn">✎ Edit</button>
+    <div class="dash-greeting" id="dash-greeting">Welcome back</div>
+    <div class="dash-thesis-title" id="dash-title">Your Research Title</div>
+    <div class="dash-meta">
+      <span class="dash-meta-pill" id="dash-sup"></span>
+      <span class="dash-meta-pill" id="dash-uni"></span>
+      <span class="dash-meta-pill" id="dash-deadline"></span>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-label" id="t-overallLabel">Overall Progress</div>
+      <div class="dash-card-val" id="dash-overall-pct">0%</div>
+      <div class="dash-card-sub" id="dash-overall-sub"></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label" id="t-wordsLabel">Total Words Written</div>
+      <div class="dash-card-val" id="dash-words">0</div>
+      <div class="dash-card-sub" id="t-wordsSub">Target: 15,000 – 20,000</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label" id="t-litLabel">Literature Studies</div>
+      <div class="dash-card-val" id="dash-lit-count">0</div>
+      <div class="dash-card-sub" id="t-litSub">studies logged</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label" id="t-daysLabel">Days Remaining</div>
+      <div class="dash-card-val" id="dash-days">—</div>
+      <div class="dash-card-sub" id="dash-days-sub"></div>
+    </div>
+  </div>
+
+  <div class="dash-card" style="margin-bottom:14px;">
+    <div class="dash-card-label" id="t-chaptersLabel">Chapter Progress</div>
+    <div class="chapter-rings" id="dash-chapter-rings"></div>
+  </div>
+
+  <div class="dash-quick">
+    <button class="dash-quick-btn" onclick="switchTab('thesis')">📋 Go to Structure</button>
+    <button class="dash-quick-btn" onclick="switchTab('lit')">📚 Literature Review</button>
+  </div>
+
+  <div style="display:flex; justify-content:center; margin-top:32px;">
+    <button class="dash-logout-btn" onclick="doLogout()" id="t-logoutBtn">⏻ Logout</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SETUP WIZARD -->
+  <div id="setup">
+    <div class="eyebrow" id="t-eyebrow"></div>
+    <h1 id="t-title"></h1>
+    <div class="sub" id="t-sub"></div>
+
+    <div class="stepper" id="stepper">
+      <div class="step-dot active" id="dot-1">1</div><div class="step-line"></div>
+      <div class="step-dot" id="dot-2">2</div><div class="step-line"></div>
+      <div class="step-dot" id="dot-3">3</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-panel" id="panel-1">
+      <div class="card">
+        <span class="q-label" id="t-q1"></span>
+        <div class="options" id="opts-method"></div>
+      </div>
+      <div class="nav-row">
+        <span></span>
+        <button class="btn btn-primary" id="t-next1" onclick="goStep(2)" disabled></button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-panel hidden" id="panel-2">
+      <div class="card">
+        <span class="q-label" id="t-q2"></span>
+        <div class="options" id="opts-mediator"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="t-back2" onclick="goStep(1)"></button>
+        <button class="btn btn-primary" id="t-next2" onclick="goStep(3)" disabled></button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-panel hidden" id="panel-3">
+      <div class="card">
+        <span class="q-label" id="t-q3"></span>
+        <input type="text" id="field">
+        <div class="hint" id="t-hint3"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="t-back3" onclick="goStep(2)"></button>
+        <button class="btn btn-primary" id="t-build" onclick="buildStructure()"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="result" class="hidden">
+    <div class="eyebrow" id="t-eyebrow2"></div>
+    <h1 id="t-resultTitle"></h1>
+    <div class="summary-bar" id="summaryBar"></div>
+    <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
+    <div class="progress-text" id="progressText"></div>
+
+    <div class="total-wc-bar">
+      <span class="total-wc-label" id="t-totalWcLabel"></span>
+      <span class="total-wc-num" id="totalWcNum">0</span>
+      <span class="total-wc-target" id="t-totalWcTarget"></span>
+    </div>
+
+    <div id="chapters"></div>
+
+    <div class="note-box" id="noteBox"></div>
+
+    <div class="nav-row" style="margin-top:24px;">
+      <button class="btn btn-ghost" id="t-backBtn" onclick="backToSetup()"></button>
+      <button class="btn btn-primary" id="t-exportBtn" onclick="exportToWord()"></button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let LANG = 'ar';
+let selMethod = null;
+let selMediator = null;
+
+// Original academic phrase templates, written independently — organized by
+// section function. Generic scholarly conventions, not sourced from any
+// copyrighted phrasebank.
+const PHRASES = {
+  bg: [
+    "Over the past decade, [topic] has become an increasingly central concern within [field].",
+    "Against this backdrop, the present study seeks to explore [phenomenon] within the context of [setting].",
+    "Despite growing interest in [topic], relatively little attention has been paid to [specific angle]."
+  ],
+  problem: [
+    "While prior studies have examined [X], they have largely overlooked [Y], leaving a notable gap in the literature.",
+    "This gap is particularly significant given that [reason/context].",
+    "The present study addresses this gap by investigating [research focus]."
+  ],
+  objectives: [
+    "This study aims to examine the relationship between [X] and [Y].",
+    "Specifically, this research seeks to: (1) determine..., (2) assess..., (3) evaluate...",
+    "The primary objective of this study is to investigate the extent to which [X] influences [Y]."
+  ],
+  questions: [
+    "RQ1: To what extent does [X] influence [Y] among [population]?",
+    "RQ2: What role does [mediator] play in the relationship between [X] and [Y]?",
+    "This study seeks to answer the following question: [...]?"
+  ],
+  significance: [
+    "This study contributes to the existing body of knowledge by [contribution].",
+    "From a practical standpoint, the findings are expected to inform [stakeholders] in [context].",
+    "Theoretically, this research extends [theory] by incorporating [new element]."
+  ],
+  litreview: [
+    "A growing body of literature has examined [topic] from multiple perspectives.",
+    "Several studies have reported that [finding] (Author, Year; Author, Year).",
+    "However, findings across these studies remain inconsistent, with some suggesting [A] while others report [B]."
+  ],
+  theory: [
+    "This study draws on [theory name] as its guiding theoretical lens.",
+    "According to [theory], [core proposition], which provides a useful framework for understanding [phenomenon].",
+    "This theoretical perspective has been widely applied in studies of [related field]."
+  ],
+  mediator: [
+    "It is proposed that [mediator] mediates the relationship between [X] and [Y].",
+    "Prior research suggests that [mediator] plays a critical role in translating [X] into [Y].",
+    "This mediating mechanism has received limited empirical attention within [context]."
+  ],
+  hypotheses: [
+    "H1: [X] has a significant positive effect on [Y].",
+    "H2: [Mediator] mediates the relationship between [X] and [Y].",
+    "Based on the foregoing discussion, the following hypothesis is proposed: [...]."
+  ],
+  conceptual: [
+    "Figure X presents the conceptual framework underpinning this study.",
+    "The proposed model integrates [construct A], [construct B], and [construct C] within a single framework.",
+    "This framework illustrates the hypothesized relationships among the study's key variables."
+  ],
+  design: [
+    "This study adopts a [quantitative/qualitative/mixed-methods] research design to address the stated objectives.",
+    "A [design type] approach was deemed most appropriate given the nature of the research questions.",
+    "This design enables the researcher to [justification, e.g., test hypothesized relationships]."
+  ],
+  sampling: [
+    "The target population for this study consists of [population].",
+    "A [sampling method] approach was employed to select participants.",
+    "The final sample comprised [N] respondents, which exceeds the minimum threshold recommended by [guideline/source]."
+  ],
+  instrument: [
+    "Data were collected using a structured questionnaire adapted from prior validated studies.",
+    "All items were measured using a [X]-point Likert scale ranging from 'strongly disagree' to 'strongly agree'.",
+    "The instrument was pre-tested with a pilot sample of [N] respondents to ensure clarity and reliability."
+  ],
+  analysis: [
+    "Data were analyzed using [software/method] to test the proposed hypotheses.",
+    "The analysis proceeded in two stages: first, [step one]; second, [step two].",
+    "Prior to hypothesis testing, the data were screened for [assumption, e.g., normality, multicollinearity]."
+  ],
+  ethics: [
+    "Ethical approval was obtained prior to data collection.",
+    "Participants were informed of the study's purpose and provided informed consent before participating.",
+    "Confidentiality and anonymity of respondents were maintained throughout the research process."
+  ],
+  sampleprofile: [
+    "Table X presents the demographic characteristics of the study sample.",
+    "Of the total respondents, [X%] were [characteristic], while [Y%] were [characteristic].",
+    "The sample was broadly representative of [population] in terms of [demographic factors]."
+  ],
+  descriptive: [
+    "Descriptive statistics, including means and standard deviations, are reported in Table X.",
+    "On average, respondents reported relatively high/moderate levels of [variable] (M = X, SD = Y).",
+    "These results suggest that participants generally [interpretation]."
+  ],
+  hyptest: [
+    "As shown in Table X, [X] was found to have a significant positive effect on [Y] (β = ..., p < .05), thereby supporting H1.",
+    "Contrary to expectations, the relationship between [X] and [Y] was not statistically significant.",
+    "The mediation analysis revealed that [mediator] significantly mediated the relationship between [X] and [Y]."
+  ],
+  summary: [
+    "Table X summarizes the results of the hypothesis testing.",
+    "Of the [N] hypotheses proposed, [X] were supported, while [Y] were not.",
+    "These findings provide partial/strong support for the proposed conceptual model."
+  ],
+  discussion: [
+    "This finding is consistent with prior research conducted by [Author, Year], which similarly reported [result].",
+    "This result diverges from previous studies, possibly due to [contextual explanation].",
+    "Taken together, these findings suggest that [interpretation]."
+  ],
+  theorycontrib: [
+    "This study extends [theory] by demonstrating that [new insight].",
+    "These findings contribute to the theoretical understanding of [phenomenon] by highlighting the role of [factor].",
+    "From a theoretical standpoint, this research offers new evidence regarding [relationship]."
+  ],
+  practical: [
+    "These findings carry several practical implications for [stakeholders].",
+    "Practitioners in [sector] may benefit from [recommendation].",
+    "It is recommended that [organization/decision-makers] consider [action] in order to [outcome]."
+  ],
+  limitations: [
+    "As with any study, this research is subject to certain limitations.",
+    "First, the use of a [sampling method] may limit the generalizability of the findings.",
+    "Future studies should address these limitations by [suggestion]."
+  ],
+  future: [
+    "Future research could extend this study by examining [additional variable].",
+    "It would be valuable for future studies to replicate this research in [different context].",
+    "Longitudinal research is recommended to better capture [phenomenon] over time."
+  ]
+};
+
+const UI = {
+  ar: {
+    brand: "بوصلة البحث",
+    eyebrow: "مساعد التخطيط الأكاديمي",
+    title: "هيكلة البحث العلمي",
+    sub: "ثلاث خطوات بسيطة تبني لك هيكل الفصول الكامل مع نقاط إرشادية تحت كل قسم — والتفصيل يُكتب في Word.",
+    q1: "ما نوع منهجية دراستك؟",
+    methodOpts: [
+      {v:"quant", t:"كمّية", d:"استبيان وتحليل إحصائي"},
+      {v:"pls", t:"PLS-SEM", d:"نمذجة المعادلات الهيكلية"},
+      {v:"qual", t:"نوعية", d:"مقابلات أو دراسة حالة"},
+      {v:"mixed", t:"مختلطة", d:"دمج بين الكمي والنوعي"}
+    ],
+    next1: "التالي",
+    q2: "هل تتضمن دراستك متغيرات وسيطة أو معدّلة؟",
+    medOpts: [
+      {v:"yes", t:"نعم", d:"فيه Mediator أو Moderator"},
+      {v:"no", t:"لا", d:"علاقة مباشرة بين المتغيرات"}
+    ],
+    back2: "السابق", next2: "التالي",
+    q3: "مجال الدراسة (اختياري)",
+    hint3: "يظهر هذا في النقاط الإرشادية لتخصيص التوجيه قدر الإمكان.",
+    back3: "السابق", build: "ابنِ الهيكل ✦",
+    eyebrow2: "هيكلك جاهز",
+    resultTitle: "خارطة بحثك",
+    methodLabels: {pls:"PLS-SEM", quant:"كمّية", qual:"نوعية", mixed:"مختلطة"},
+    pillField: "المجال:",
+    pillMed: "متغير وسيط:",
+    noteBox: "نصيحة: استخدمي صياغات أكاديمية رسمية لربط الجمل، مثل 'This study aims to...' أو 'Prior research has shown that...'",
+    backBtn: "⟲ تعديل الإعدادات",
+    exportBtn: "تنزيل كملف Word ⤓",
+    writeBtn: "✎ اكتب",
+    writeBtnActive: "إخفاء المحرر",
+    placeholder: "ابدأ الكتابة هنا...",
+    saving: "جارٍ الحفظ...",
+    totalWcLabel: "إجمالي كلمات البحث",
+    totalWcTarget: "الهدف المعتاد للبحث: ١٥٬٠٠٠ – ٢٠٬٠٠٠ كلمة",
+    wcWords: "كلمة",
+    saved: "تم الحفظ تلقائياً ✓",
+    phraseBtn: "💬 جمل مقترحة",
+    phraseBtnActive: "إخفاء الجمل",
+    copyBtn: "نسخ",
+    copiedBtn: "✓ تم النسخ",
+    fieldDefault: "مجالك البحثي",
+    chapterLabel: "فصل",
+    completedText: (d,t,p) => `أُنجز ${d} من ${t} قسم — ${p}%`,
+    chapters: {
+      ch1: {
+        title: "المقدمة",
+        sections: [
+          {t:"خلفية الدراسة", g:"قدّم السياق العام حول موضوعك، ولماذا هو مهم الآن في سياقك.", cat:"bg"},
+          {t:"مشكلة الدراسة", g:"وضّح الفجوة البحثية، السياق، الأهمية، السؤال البحثي، والمساهمة المتوقعة.", cat:"problem"},
+          {t:"أهداف الدراسة", g:"اكتبها بأفعال بحثية واضحة (Examine, Investigate, Determine).", cat:"objectives"},
+          {t:"أسئلة الدراسة", g:"كل سؤال يقابل هدف محدد أعلاه.", cat:"questions"},
+          {t:"أهمية الدراسة", g:"وضّح الأهمية الأكاديمية والعملية لمجالك.", cat:"significance"}
+        ]
+      },
+      ch2base: [
+        {t:"مراجعة الأدبيات", g:"رتّبها حسب المتغيرات الرئيسية، ثم الدراسات الأقرب لسياق الدراسة.", cat:"litreview"},
+        {t:"الإطار النظري", g:"اختر نظرية أساس مناسبة للموضوع واربطها بالمتغيرات.", cat:"theory"}
+      ],
+      ch2mediator: {t:"المتغيرات الوسيطة/المعدّلة", g:"اشرح دور المتغير الوسيط أو المعدّل ودليله من الأدبيات السابقة.", cat:"mediator"},
+      ch2rest: [
+        {t:"الفرضيات", g:"كل فرضية مبنية على فجوة من الأدبيات، مرقّمة بوضوح (H1, H2...).", cat:"hypotheses"},
+        {t:"الإطار المفاهيمي", g:"رسم بياني يربط كل المتغيرات بصرياً قبل الفصل الثالث.", cat:"conceptual"}
+      ],
+      ch2title: "مراجعة الأدبيات والإطار النظري",
+      ch3title: "منهجية الدراسة",
+      ch3pls: [
+        {t:"تصميم الدراسة", g:"وضّح اختيار PLS-SEM ولماذا يناسب نموذجك.", cat:"design"},
+        {t:"العيّنة وحجمها", g:"حدد طريقة أخذ العينة والحجم المناسب وفق قواعد PLS-SEM.", cat:"sampling"},
+        {t:"أداة جمع البيانات", g:"الاستبيان، ومصادر المقاييس من دراسات سابقة موثوقة.", cat:"instrument"},
+        {t:"التحليل الإحصائي", g:"اشرح خطوات SmartPLS: قياس النموذج ثم النموذج الهيكلي.", cat:"analysis"}
+      ],
+      ch3qual: [
+        {t:"تصميم الدراسة", g:"وضّح لماذا المنهج النوعي مناسب للدراسة.", cat:"design"},
+        {t:"المشاركون وطريقة الاختيار", g:"معايير اختيار المشاركين/الحالات، وعددهم.", cat:"sampling"},
+        {t:"أداة جمع البيانات", g:"دليل المقابلة أو بروتوكول دراسة الحالة.", cat:"instrument"},
+        {t:"تحليل البيانات", g:"الطريقة المستخدمة (Thematic Analysis، Content Analysis...).", cat:"analysis"}
+      ],
+      ch3mixed: [
+        {t:"تصميم الدراسة المختلطة", g:"وضّح التسلسل وسبب الجمع بين الكمي والنوعي.", cat:"design"},
+        {t:"المرحلة الكمية", g:"العينة، الأداة، التحليل الإحصائي.", cat:"sampling"},
+        {t:"المرحلة النوعية", g:"المشاركون، أداة الجمع، طريقة التحليل.", cat:"instrument"},
+        {t:"دمج النتائج", g:"كيف بتربطين نتائج المرحلتين ببعض.", cat:"analysis"}
+      ],
+      ch3quant: [
+        {t:"تصميم الدراسة", g:"وضّح المنهج الكمي ولماذا يناسب الفرضيات.", cat:"design"},
+        {t:"العيّنة وحجمها", g:"طريقة أخذ العينة وحجمها المطلوب إحصائياً.", cat:"sampling"},
+        {t:"أداة جمع البيانات", g:"الاستبيان ومصادر المقاييس من دراسات سابقة.", cat:"instrument"},
+        {t:"التحليل الإحصائي", g:"البرنامج المستخدم (SPSS/AMOS) والاختبارات المخطط لها.", cat:"analysis"}
+      ],
+      ch3ethics: {t:"الاعتبارات الأخلاقية", g:"الموافقة المسبقة، السرية، حماية بيانات المشاركين.", cat:"ethics"},
+      ch4title: "النتائج",
+      ch4: [
+        {t:"وصف العينة", g:"الخصائص الديموغرافية بجداول وأشكال بيانية.", cat:"sampleprofile"},
+        {t:"التحليل الوصفي", g:"المتوسطات والانحرافات المعيارية لكل متغير.", cat:"descriptive"}
+      ],
+      ch4hyp_pls: {t:"اختبار الفرضيات", g:"نتائج Bootstrapping من SmartPLS: مسارات العلاقات، قيم T وP، R².", cat:"hyptest"},
+      ch4hyp_other: {t:"اختبار الفرضيات", g:"نتائج الاختبارات الإحصائية لكل فرضية بشكل منفصل.", cat:"hyptest"},
+      ch4summary: {t:"ملخص النتائج", g:"جدول يلخص أي فرضية تم قبولها وأيها رُفضت.", cat:"summary"},
+      ch5title: "المناقشة والاستنتاج",
+      ch5: [
+        {t:"مناقشة النتائج", g:"اربط كل نتيجة بالأدبيات في الفصل الثاني — هل تتفق أو تختلف؟ ولماذا؟", cat:"discussion"},
+        {t:"المساهمة النظرية", g:"وش اللي أضافته دراستك للنظرية المستخدمة؟", cat:"theorycontrib"},
+        {t:"المساهمة العملية", g:"توصيات عملية لقطاعك أو صنّاع القرار المعنيين.", cat:"practical"},
+        {t:"محددات الدراسة", g:"كن صريحاً وموضوعياً (حجم العينة، السياق الجغرافي...).", cat:"limitations"},
+        {t:"مقترحات لدراسات مستقبلية", g:"بناءً على المحددات أعلاه، اقترح اتجاهات بحثية جديدة.", cat:"future"}
+      ]
+    }
+  },
+  en: {
+    brand: "Research Compass",
+    eyebrow: "Academic Planning Assistant",
+    title: "Structure Your Research",
+    sub: "Three quick steps to build your full chapter structure with guidance notes under each section — write the actual content in Word.",
+    q1: "What is your research methodology?",
+    methodOpts: [
+      {v:"quant", t:"Quantitative", d:"Survey & statistical analysis"},
+      {v:"pls", t:"PLS-SEM", d:"Structural equation modeling"},
+      {v:"qual", t:"Qualitative", d:"Interviews or case study"},
+      {v:"mixed", t:"Mixed Methods", d:"Combining quant and qual"}
+    ],
+    next1: "Next",
+    q2: "Does your study include mediating or moderating variables?",
+    medOpts: [
+      {v:"yes", t:"Yes", d:"Has a mediator or moderator"},
+      {v:"no", t:"No", d:"Direct relationship between variables"}
+    ],
+    back2: "Back", next2: "Next",
+    q3: "Field of study (optional)",
+    hint3: "This personalizes the guidance notes as much as possible.",
+    back3: "Back", build: "Build My Structure ✦",
+    eyebrow2: "Your structure is ready",
+    resultTitle: "Your Research Map",
+    methodLabels: {pls:"PLS-SEM", quant:"Quantitative", qual:"Qualitative", mixed:"Mixed Methods"},
+    pillField: "Field:",
+    pillMed: "Mediator:",
+    noteBox: "Tip: use formal academic phrasing to connect ideas, like 'This study aims to...' or 'Prior research has shown that...'",
+    backBtn: "⟲ Edit Settings",
+    exportBtn: "Download as Word ⤓",
+    writeBtn: "✎ Write",
+    writeBtnActive: "Hide Editor",
+    placeholder: "Start writing here...",
+    saving: "Saving...",
+    totalWcLabel: "Total research words",
+    totalWcTarget: "Typical research: 15,000 – 20,000 words",
+    wcWords: "words",
+    saved: "Auto-saved ✓",
+    phraseBtn: "💬 Suggested phrases",
+    phraseBtnActive: "Hide phrases",
+    copyBtn: "Copy",
+    copiedBtn: "✓ Copied",
+    fieldDefault: "your field of study",
+    chapterLabel: "Chapter",
+    completedText: (d,t,p) => `Completed ${d} of ${t} sections — ${p}%`,
+    chapters: {
+      ch1: {
+        title: "Introduction",
+        sections: [
+          {t:"Background of the Study", g:"Introduce the general context of your topic, and why it matters now.", cat:"bg"},
+          {t:"Problem Statement", g:"Clarify the research gap, context, significance, research question, and expected contribution.", cat:"problem"},
+          {t:"Research Objectives", g:"Write them with clear research verbs (Examine, Investigate, Determine).", cat:"objectives"},
+          {t:"Research Questions", g:"Each question should map to a specific objective above.", cat:"questions"},
+          {t:"Significance of the Study", g:"Clarify the academic and practical significance for your field.", cat:"significance"}
+        ]
+      },
+      ch2base: [
+        {t:"Literature Review", g:"Organize by key variables, then narrow to studies closest to your context.", cat:"litreview"},
+        {t:"Theoretical Framework", g:"Select a base theory relevant to your topic and link it to your variables.", cat:"theory"}
+      ],
+      ch2mediator: {t:"Mediating/Moderating Variables", g:"Explain the role of the mediator/moderator and its evidence from prior literature.", cat:"mediator"},
+      ch2rest: [
+        {t:"Hypotheses", g:"Each hypothesis should be grounded in a gap from the literature, clearly numbered (H1, H2...).", cat:"hypotheses"},
+        {t:"Conceptual Framework", g:"A diagram visually linking all variables before Chapter 3.", cat:"conceptual"}
+      ],
+      ch2title: "Literature Review & Theoretical Framework",
+      ch3title: "Research Methodology",
+      ch3pls: [
+        {t:"Research Design", g:"Justify the choice of PLS-SEM and why it suits your model.", cat:"design"},
+        {t:"Sample & Sample Size", g:"Define the sampling method and appropriate size per PLS-SEM rules.", cat:"sampling"},
+        {t:"Data Collection Instrument", g:"The survey, and sources of adapted scales from reliable prior studies.", cat:"instrument"},
+        {t:"Data Analysis", g:"Explain the SmartPLS steps: Measurement Model then Structural Model.", cat:"analysis"}
+      ],
+      ch3qual: [
+        {t:"Research Design", g:"Justify why a qualitative approach suits your study.", cat:"design"},
+        {t:"Participants & Selection", g:"Criteria for selecting participants/cases, and their number.", cat:"sampling"},
+        {t:"Data Collection Instrument", g:"Interview guide or case study protocol.", cat:"instrument"},
+        {t:"Data Analysis", g:"Method used (Thematic Analysis, Content Analysis...).", cat:"analysis"}
+      ],
+      ch3mixed: [
+        {t:"Mixed Methods Design", g:"Justify the sequence and reason for combining methods.", cat:"design"},
+        {t:"Quantitative Phase", g:"Sample, instrument, statistical analysis.", cat:"sampling"},
+        {t:"Qualitative Phase", g:"Participants, collection tool, analysis method.", cat:"instrument"},
+        {t:"Integration of Findings", g:"How you will connect results from both phases.", cat:"analysis"}
+      ],
+      ch3quant: [
+        {t:"Research Design", g:"Justify the quantitative approach and why it suits your hypotheses.", cat:"design"},
+        {t:"Sample & Sample Size", g:"Sampling method and statistically required size.", cat:"sampling"},
+        {t:"Data Collection Instrument", g:"The survey and sources of measurement scales from prior studies.", cat:"instrument"},
+        {t:"Data Analysis", g:"Software used (SPSS/AMOS) and planned statistical tests.", cat:"analysis"}
+      ],
+      ch3ethics: {t:"Ethical Considerations", g:"Informed consent, confidentiality, protection of participant data.", cat:"ethics"},
+      ch4title: "Findings / Results",
+      ch4: [
+        {t:"Sample Profile", g:"Demographic characteristics with tables and charts.", cat:"sampleprofile"},
+        {t:"Descriptive Analysis", g:"Means and standard deviations for each variable.", cat:"descriptive"}
+      ],
+      ch4hyp_pls: {t:"Hypothesis Testing", g:"Bootstrapping results from SmartPLS: path relationships, T and P values, R².", cat:"hyptest"},
+      ch4hyp_other: {t:"Hypothesis Testing", g:"Statistical test results for each hypothesis individually.", cat:"hyptest"},
+      ch4summary: {t:"Summary of Findings", g:"A table summarizing which hypotheses were supported and which were rejected.", cat:"summary"},
+      ch5title: "Discussion & Conclusion",
+      ch5: [
+        {t:"Discussion of Findings", g:"Link each result back to Chapter 2's literature — does it agree or conflict, and why?", cat:"discussion"},
+        {t:"Theoretical Contribution", g:"What did your study add to the theory used?", cat:"theorycontrib"},
+        {t:"Practical/Managerial Implications", g:"Practical recommendations for your sector or relevant decision-makers.", cat:"practical"},
+        {t:"Limitations of the Study", g:"Be candid and objective (sample size, geographic scope...).", cat:"limitations"},
+        {t:"Future Research Suggestions", g:"Based on the limitations above, propose new research directions.", cat:"future"}
+      ]
+    }
+  }
+};
+
+function renderOptions(containerId, opts, groupVarSetter, selectedRef){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opts.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'opt' + (selectedRef() === o.v ? ' selected' : '');
+    div.innerHTML = `<span class="radio"></span><span><strong>${o.t}</strong><br><span style="opacity:.75;font-size:0.82rem;">${o.d}</span></span>`;
+    div.onclick = () => { groupVarSetter(o.v); refreshUI(); };
+    container.appendChild(div);
+  });
+}
+
+function setLang(lang){
+  LANG = lang;
+  document.getElementById('htmlRoot').setAttribute('lang', lang);
+  document.getElementById('htmlRoot').setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.getElementById('btnAr').classList.toggle('active', lang==='ar');
+  document.getElementById('btnEn').classList.toggle('active', lang==='en');
+
+  const u = UI[lang];
+  document.getElementById('brandText').textContent = u.brand;
+  document.getElementById('t-eyebrow').textContent = u.eyebrow;
+  document.getElementById('t-eyebrow2').textContent = u.eyebrow2;
+  document.getElementById('t-title').textContent = u.title;
+  document.getElementById('t-sub').textContent = u.sub;
+  document.getElementById('t-q1').textContent = u.q1;
+  document.getElementById('t-next1').textContent = u.next1;
+  document.getElementById('t-q2').textContent = u.q2;
+  document.getElementById('t-back2').textContent = u.back2;
+  document.getElementById('t-next2').textContent = u.next2;
+  document.getElementById('t-q3').textContent = u.q3;
+  document.getElementById('field').placeholder = u.q3;
+  document.getElementById('t-hint3').textContent = u.hint3;
+  document.getElementById('t-back3').textContent = u.back3;
+  document.getElementById('t-build').textContent = u.build;
+  document.getElementById('t-resultTitle').textContent = u.resultTitle;
+  document.getElementById('t-backBtn').textContent = u.backBtn;
+  document.getElementById('t-exportBtn').textContent = u.exportBtn;
+  const twl = document.getElementById('t-totalWcLabel');
+  const twt = document.getElementById('t-totalWcTarget');
+  if(twl) twl.textContent = u.totalWcLabel;
+  if(twt) twt.textContent = u.totalWcTarget;
+
+  renderOptions('opts-method', u.methodOpts, v => selMethod = v, () => selMethod);
+  renderOptions('opts-mediator', u.medOpts, v => selMediator = v, () => selMediator);
+  refreshUI();
+  applyLoginLabels();
+
+  if(!document.getElementById('result').classList.contains('hidden')){
+    buildStructure();
+  }
+}
+
+function refreshUI(){
+  document.getElementById('t-next1').disabled = !selMethod;
+  document.getElementById('t-next2').disabled = !selMediator;
+  renderOptions('opts-method', UI[LANG].methodOpts, v => selMethod = v, () => selMethod);
+  renderOptions('opts-mediator', UI[LANG].medOpts, v => selMediator = v, () => selMediator);
+  document.getElementById('t-next1').disabled = !selMethod;
+  document.getElementById('t-next2').disabled = !selMediator;
+}
+
+function goStep(n){
+  [1,2,3].forEach(i => {
+    document.getElementById('panel-'+i).classList.toggle('hidden', i !== n);
+    const dot = document.getElementById('dot-'+i);
+    dot.classList.toggle('active', i === n);
+    dot.classList.toggle('done', i < n);
+  });
+}
+
+function buildStructure(){
+  const method = selMethod || 'quant';
+  const mediator = selMediator || 'no';
+  const field = document.getElementById('field').value.trim();
+  const u = UI[LANG];
+  const fieldDisplay = field || u.fieldDefault;
+
+  const chapters = [];
+  chapters.push({ title: u.chapters.ch1.title, sections: u.chapters.ch1.sections.slice() });
+
+  let ch2sections = u.chapters.ch2base.slice();
+  if(mediator === 'yes') ch2sections = ch2sections.concat([u.chapters.ch2mediator]);
+  ch2sections = ch2sections.concat(u.chapters.ch2rest);
+  chapters.push({ title: u.chapters.ch2title, sections: ch2sections });
+
+  let ch3sections;
+  if(method === 'pls') ch3sections = u.chapters.ch3pls.slice();
+  else if(method === 'qual') ch3sections = u.chapters.ch3qual.slice();
+  else if(method === 'mixed') ch3sections = u.chapters.ch3mixed.slice();
+  else ch3sections = u.chapters.ch3quant.slice();
+  ch3sections = ch3sections.concat([u.chapters.ch3ethics]);
+  chapters.push({ title: u.chapters.ch3title, sections: ch3sections });
+
+  let ch4sections = u.chapters.ch4.slice();
+  ch4sections.push(method === 'pls' ? u.chapters.ch4hyp_pls : u.chapters.ch4hyp_other);
+  ch4sections.push(u.chapters.ch4summary);
+  chapters.push({ title: u.chapters.ch4title, sections: ch4sections });
+
+  chapters.push({ title: u.chapters.ch5title, sections: u.chapters.ch5.slice() });
+
+  renderChapters(chapters, method, mediator, fieldDisplay);
+}
+
+function renderChapters(chapters, method, mediator, field){
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  const u = UI[LANG];
+
+  const summaryBar = document.getElementById('summaryBar');
+  summaryBar.innerHTML = `
+    <span class="pill">${u.methodLabels[method]}</span>
+    <span class="pill">${u.pillField} ${field}</span>
+    <span class="pill">${u.pillMed} ${mediator === 'yes' ? (LANG==='ar'?'نعم':'Yes') : (LANG==='ar'?'لا':'No')}</span>
+  `;
+
+  document.getElementById('noteBox').textContent = u.noteBox;
+
+  const container = document.getElementById('chapters');
+  const prevChecked = window.__progressState || {};
+  container.innerHTML = '';
+
+  chapters.forEach((ch, ci) => {
+    const div = document.createElement('div');
+    div.className = 'chapter';
+    div.id = 'chapter-' + ci;
+
+    const head = document.createElement('div');
+    head.className = 'chapter-head';
+    head.innerHTML = `
+      <div class="chapter-num">${ci+1}</div>
+      <div class="chapter-info">
+        <h3>${ch.title}</h3>
+        <div class="chapter-badge" id="badge-${ci}">0/${ch.sections.length}</div>
+      </div>
+      <div class="chevron">▸</div>
+    `;
+    head.onclick = () => {
+      div.classList.toggle('open');
+      document.getElementById('body-'+ci).classList.toggle('hidden');
+    };
+    div.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'chapter-body hidden';
+    body.id = 'body-' + ci;
+
+    ch.sections.forEach((s, si) => {
+      const key = ci + '-' + si;
+      const checked = prevChecked[key] ? 'checked' : '';
+      const sec = document.createElement('div');
+      sec.className = 'sec';
+      const phraseList = (PHRASES[s.cat] || []).map((p, pi) => `
+        <div class="phrase-item">
+          <span>${p}</span>
+          <button class="phrase-copy" id="copy-${key}-${pi}" onclick="copyPhrase('${key}-${pi}', this)">${UI[LANG].copyBtn}</button>
+        </div>
+      `).join('');
+      sec.innerHTML = `
+        <label class="sec-head">
+          <input type="checkbox" ${checked} onchange="updateProgress()" data-key="${key}">
+          <span class="sec-title ${prevChecked[key] ? 'done':''}" id="title-${key}">${s.t}</span>
+        </label>
+        <div class="sec-guidance">${s.g}</div>
+        <button class="write-toggle" id="wt-${key}" onclick="toggleEditor('${key}')">${UI[LANG].writeBtn}</button>
+        <button class="phrase-toggle" id="pt-${key}" onclick="togglePhrases('${key}')">${UI[LANG].phraseBtn}</button>
+        <button class="claude-btn" id="cl-${key}" onclick="runClaude('${key}', '${s.t.replace(/'/g,"\\'")}', '${s.g.replace(/'/g,"\\'")}')">✨ Claude</button>
+        <div class="claude-box hidden" id="clb-${key}">
+          <div class="claude-label">✨ CLAUDE SUGGESTION</div>
+          <div class="claude-output" id="clo-${key}"></div>
+          <div class="claude-actions">
+            <button class="claude-accept" onclick="claudeAccept('${key}')">✓ ${LANG==='ar'?'أضف للمحرر':'Add to editor'}</button>
+            <button class="claude-discard" onclick="claudeDiscard('${key}')">✕</button>
+          </div>
+        </div>
+        <div class="phrase-list hidden" id="pl-${key}" data-phrases='${JSON.stringify(PHRASES[s.cat] || [])}'>${phraseList}</div>
+        <div class="page-editor-wrap hidden" id="ed-wrap-${key}">
+          <div class="page-editor" contenteditable="true" id="ed-${key}" data-placeholder="${UI[LANG].placeholder}" oninput="onEditorInput('${key}')"></div>
+          <div class="word-counter">
+            <span id="wc-${key}" class="wc-num">0</span>
+            <span>${UI[LANG].wcWords}</span>
+          </div>
+          <div class="save-status" id="status-${key}"></div>
+        </div>
+      `;
+      body.appendChild(sec);
+    });
+
+    div.appendChild(body);
+    container.appendChild(div);
+  });
+
+  // open first chapter by default
+  document.getElementById('chapter-0').classList.add('open');
+  document.getElementById('body-0').classList.remove('hidden');
+
+  window.__currentChapters = chapters;
+  window.__currentField = field;
+
+  updateProgress();
+}
+
+function updateProgress(){
+  const all = document.querySelectorAll('#chapters input[type=checkbox]');
+  const checked = document.querySelectorAll('#chapters input[type=checkbox]:checked');
+
+  const state = {};
+  all.forEach(cb => {
+    state[cb.dataset.key] = cb.checked;
+    const titleEl = document.getElementById('title-'+cb.dataset.key);
+    if(titleEl) titleEl.classList.toggle('done', cb.checked);
+  });
+  window.__progressState = state;
+
+  const pct = all.length ? Math.round((checked.length/all.length)*100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = UI[LANG].completedText(checked.length, all.length, pct);
+
+  document.querySelectorAll('.chapter').forEach((div, ci) => {
+    const boxes = div.querySelectorAll('input[type=checkbox]');
+    const done = div.querySelectorAll('input[type=checkbox]:checked');
+    const badge = document.getElementById('badge-'+ci);
+    if(badge) badge.textContent = `${done.length}/${boxes.length}`;
+  });
+}
+
+function backToSetup(){
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  CLAUDE AI ASSISTANT
+//  IMPORTANT: Set CLAUDE_ENDPOINT to your Cloudflare Worker URL
+//  once it's deployed. Leave empty to show "coming soon" message.
+// ══════════════════════════════════════════════════════════════
+const CLAUDE_ENDPOINT = ""; // e.g. "https://your-worker.your-name.workers.dev"
+
+async function runClaude(key, sectionTitle, guidance){
+  const box = document.getElementById('clb-' + key);
+  const out = document.getElementById('clo-' + key);
+  const btn = document.getElementById('cl-' + key);
+  const ed  = document.getElementById('ed-' + key);
+
+  box.classList.remove('hidden');
+
+  if(!CLAUDE_ENDPOINT){
+    out.textContent = LANG==='ar'
+      ? '✨ ميزة Claude قادمة قريباً — ستتمكن من توليد نص أكاديمي احترافي لهذا القسم بضغطة واحدة.'
+      : '✨ Claude is coming soon — you will be able to generate professional academic text for this section with one click.';
+    return;
+  }
+
+  const userText = ed ? ed.innerText.trim() : '';
+  const field = (userProfile && userProfile.thesis) ? userProfile.thesis : 'the research topic';
+
+  out.innerHTML = `<span class="claude-spinner"></span> Claude is writing...`;
+  btn.disabled = true;
+
+  const prompt = `You are an expert academic writing assistant. Always write in formal academic English.
+Section: "${sectionTitle}"
+Research: ${field}
+Guidance: ${guidance}
+${userText ? `Text so far:\n"${userText}"\n\nContinue or enhance this academically.` : `Write a strong opening paragraph for this section.`}
+Write ONLY the academic text (3-5 sentences), no explanations.`;
+
+  try{
+    const response = await fetch(CLAUDE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    const text = data.text || data.content?.[0]?.text || "No suggestion generated. Please try again.";
+    out.textContent = '';
+    let i = 0;
+    const iv = setInterval(() => {
+      out.textContent += text[i] || '';
+      i++;
+      if(i >= text.length) clearInterval(iv);
+    }, 12);
+  } catch(err){
+    out.textContent = LANG==='ar'
+      ? '⚠ تعذّر الاتصال بـ Claude. حاول مرة أخرى.'
+      : '⚠ Unable to reach Claude. Please try again.';
+  } finally{
+    btn.disabled = false;
+  }
+}
+
+function claudeAccept(key){
+  const out = document.getElementById('clo-' + key);
+  const ed = document.getElementById('ed-' + key);
+  const wrap = document.getElementById('ed-wrap-' + key);
+  const wtBtn = document.getElementById('wt-' + key);
+  if(!out || !out.textContent.trim()) return;
+  // don't paste the "coming soon" note into the editor
+  if(out.textContent.includes('coming soon') || out.textContent.includes('قادمة قريباً')) return;
+
+  wrap.classList.remove('hidden');
+  wtBtn.textContent = UI[LANG].writeBtnActive;
+  const suggestion = out.textContent.trim();
+  if(ed.innerText.trim()){ ed.innerHTML += '<br><br>' + suggestion; }
+  else { ed.textContent = suggestion; }
+  onEditorInput(key);
+  claudeDiscard(key);
+}
+
+function claudeDiscard(key){
+  const box = document.getElementById('clb-' + key);
+  const out = document.getElementById('clo-' + key);
+  box.classList.add('hidden');
+  if(out) out.textContent = '';
+}
+
+function togglePhrases(key){
+  const list = document.getElementById('pl-' + key);
+  const btn = document.getElementById('pt-' + key);
+  const isHidden = list.classList.contains('hidden');
+  list.classList.toggle('hidden');
+  btn.textContent = isHidden ? UI[LANG].phraseBtnActive : UI[LANG].phraseBtn;
+}
+
+function copyPhrase(id, btnEl){
+  const list = document.getElementById('pl-' + id.split('-').slice(0,2).join('-'));
+  const phrases = list ? JSON.parse(list.dataset.phrases) : [];
+  const idx = parseInt(id.split('-').pop());
+  const text = phrases[idx];
+  if(!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btnEl.textContent = UI[LANG].copiedBtn;
+    btnEl.classList.add('copied');
+    setTimeout(() => {
+      btnEl.textContent = UI[LANG].copyBtn;
+      btnEl.classList.remove('copied');
+    }, 1500);
+  }).catch(() => {});
+}
+
+function countWords(text){
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+
+function updateTotalWordCount(){
+  const editors = document.querySelectorAll('.page-editor');
+  let total = 0;
+  editors.forEach(ed => { total += countWords(ed.innerText || ''); });
+  const el = document.getElementById('totalWcNum');
+  if(el) el.textContent = total.toLocaleString();
+}
+
+let saveTimers = {};
+
+async function toggleEditor(key){
+  const wrap = document.getElementById('ed-wrap-' + key);
+  const btn = document.getElementById('wt-' + key);
+  const isHidden = wrap.classList.contains('hidden');
+  if(isHidden){
+    wrap.classList.remove('hidden');
+    btn.textContent = UI[LANG].writeBtnActive;
+    // lazy-load saved content
+    const ed = document.getElementById('ed-' + key);
+    if(!ed.dataset.loaded){
+      try{
+        const result = await store.get('section:' + key);
+        if(result && result.value){
+            ed.innerHTML = result.value;
+            const wcEl = document.getElementById('wc-' + key);
+            if(wcEl) wcEl.textContent = countWords(ed.innerText || '').toLocaleString();
+            updateTotalWordCount();
+          }
+      }catch(e){ /* no saved content yet */ }
+      ed.dataset.loaded = '1';
+    }
+  } else {
+    wrap.classList.add('hidden');
+    btn.textContent = UI[LANG].writeBtn;
+  }
+}
+
+function onEditorInput(key){
+  const ed = document.getElementById('ed-' + key);
+  const btn = document.getElementById('wt-' + key);
+  const status = document.getElementById('status-' + key);
+  const wcEl = document.getElementById('wc-' + key);
+
+  btn.classList.toggle('has-content', ed.textContent.trim().length > 0);
+
+  // update per-section word count
+  if(wcEl) wcEl.textContent = countWords(ed.innerText || '').toLocaleString();
+
+  // update total
+  updateTotalWordCount();
+
+  if(saveTimers[key]) clearTimeout(saveTimers[key]);
+  status.textContent = UI[LANG].saving;
+  saveTimers[key] = setTimeout(async () => {
+    try{
+      await store.set('section:' + key, ed.innerHTML, false);
+      status.textContent = UI[LANG].saved;
+    }catch(e){
+      status.textContent = '';
+    }
+  }, 700);
+}
+
+async function exportToWord(){
+  const chapters = window.__currentChapters || [];
+  const field = window.__currentField || '';
+  const title = LANG === 'ar' ? 'البحث' : 'Research Document';
+  const dir = LANG === 'ar' ? 'rtl' : 'ltr';
+
+  let bodyHtml = `<h1 style="font-family:'Times New Roman',serif;text-align:center;">${title}</h1>`;
+  if(field) bodyHtml += `<p style="text-align:center;color:#555;">${field}</p>`;
+
+  for(let ci = 0; ci < chapters.length; ci++){
+    const ch = chapters[ci];
+    bodyHtml += `<h2 style="font-family:'Times New Roman',serif;margin-top:40px;">${LANG==='ar' ? '' : 'Chapter ' + (ci+1) + ': '}${ch.title}</h2>`;
+    for(let si = 0; si < ch.sections.length; si++){
+      const key = ci + '-' + si;
+      let content = '';
+      try{
+        const result = await store.get('section:' + key);
+        if(result && result.value) content = result.value;
+      }catch(e){ content = ''; }
+      bodyHtml += `<h3 style="font-family:'Times New Roman',serif;">${ch.sections[si].t}</h3>`;
+      bodyHtml += content ? `<div style="font-family:'Times New Roman',serif;font-size:13pt;line-height:2;">${content}</div>` : `<p style="color:#999;font-style:italic;">(${LANG==='ar' ? 'لم تتم الكتابة بعد' : 'Not written yet'})</p>`;
+    }
+  }
+
+  const fullHtml = `
+    <html dir="${dir}"><head><meta charset="UTF-8"><title>${title}</title></head>
+    <body style="margin:1in;">${bodyHtml}</body></html>
+  `;
+
+  const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (LANG === 'ar' ? 'البحث' : 'research_draft') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STORAGE ABSTRACTION (window.storage → localStorage fallback)
+// ══════════════════════════════════════════════════════════════
+const store = {
+  async get(key){
+    if(window.storage){
+      try{ return await store.get(key); } catch(e){ return null; }
+    }
+    const val = localStorage.getItem(key);
+    return val ? { value: val } : null;
+  },
+  async set(key, value){
+    if(window.storage){
+      try{ return await store.set(key, value, false); } catch(e){}
+    }
+    try{ localStorage.setItem(key, value); } catch(e){}
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH (local storage-based)
+// ══════════════════════════════════════════════════════════════
+let currentUser = null;
+
+function simpleHash(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = Math.imul(31,h)+str.charCodeAt(i)|0; }
+  return h.toString(36);
+}
+
+function setLoginMode(mode){
+  const isReg = mode==='register';
+  document.getElementById('lt-login').classList.toggle('active',!isReg);
+  document.getElementById('lt-register').classList.toggle('active',isReg);
+  document.getElementById('login-form').classList.toggle('hidden',isReg);
+  document.getElementById('register-form').classList.toggle('hidden',!isReg);
+  document.getElementById('login-error').textContent='';
+  document.getElementById('register-error').textContent='';
+}
+
+async function doLogin(){
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent='';
+  if(!email||!pass){ errEl.textContent = LANG==='ar'?'يرجى ملء جميع الحقول.':'Please fill in all fields.'; return; }
+
+  try{
+    const r = await store.get('user:'+email);
+    if(!r){ errEl.textContent = LANG==='ar'?'الحساب غير موجود. يرجى إنشاء حساب جديد.':'Account not found. Please register.'; return; }
+    const stored = JSON.parse(r.value);
+    if(stored.passHash !== simpleHash(pass)){
+      errEl.textContent = LANG==='ar'?'كلمة المرور غير صحيحة.':'Incorrect password.'; return;
+    }
+    currentUser = { email, name: stored.name };
+    document.getElementById('loginScreen').classList.add('hidden');
+    await profileInit();
+  } catch(e){ errEl.textContent = 'Error. Please try again.'; }
+}
+
+async function doRegister(){
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('r-pass').value;
+  const pass2 = document.getElementById('r-pass2').value;
+  const errEl = document.getElementById('register-error');
+  errEl.textContent='';
+
+  if(!name||!email||!pass){ errEl.textContent = LANG==='ar'?'يرجى ملء جميع الحقول.':'Please fill in all fields.'; return; }
+  if(pass.length < 6){ errEl.textContent = LANG==='ar'?'كلمة المرور قصيرة جداً (٦ أحرف على الأقل).':'Password must be at least 6 characters.'; return; }
+  if(pass !== pass2){ errEl.textContent = LANG==='ar'?'كلمتا المرور غير متطابقتين.':'Passwords do not match.'; return; }
+
+  try{
+    const existing = await store.get('user:'+email);
+    if(existing){ errEl.textContent = LANG==='ar'?'هذا البريد مسجل مسبقاً. يرجى تسجيل الدخول.':'This email is already registered.'; return; }
+    await store.set('user:'+email, JSON.stringify({name, passHash:simpleHash(pass)}), false);
+    currentUser = { email, name };
+
+    // pre-fill onboarding name
+    document.getElementById('ob-name').value = name;
+    document.getElementById('loginScreen').classList.add('hidden');
+    await profileInit();
+  } catch(e){ errEl.textContent = 'Error. Please try again.'; }
+}
+
+function setLangLogin(lang){
+  // switch full app language
+  setLang(lang);
+  // sync login switcher buttons
+  document.getElementById('ll-btnAr').classList.toggle('active', lang==='ar');
+  document.getElementById('ll-btnEn').classList.toggle('active', lang==='en');
+}
+
+function applyLoginLabels(){
+  const ar = LANG==='ar';
+
+  // sync login lang buttons with app lang
+  const llAr = document.getElementById('ll-btnAr');
+  const llEn = document.getElementById('ll-btnEn');
+  if(llAr) llAr.classList.toggle('active', ar);
+  if(llEn) llEn.classList.toggle('active', !ar);
+
+  // Logo / brand
+  const brand = document.getElementById('ll-brand');
+  if(brand) brand.textContent = ar ? 'بوصلة البحث' : 'Research Compass';
+
+  // Tabs
+  const ltLogin = document.getElementById('lt-login');
+  const ltReg   = document.getElementById('lt-register');
+  if(ltLogin) ltLogin.textContent = ar ? 'تسجيل الدخول' : 'Sign In';
+  if(ltReg)   ltReg.textContent   = ar ? 'إنشاء حساب'   : 'Create Account';
+
+  // Login form
+  const llEmail    = document.getElementById('ll-email');
+  const llPass     = document.getElementById('ll-pass');
+  const llLoginBtn = document.getElementById('ll-loginBtn');
+  const lEmail     = document.getElementById('l-email');
+  const lPass      = document.getElementById('l-pass');
+  if(llEmail)    llEmail.textContent    = ar ? 'البريد الإلكتروني' : 'Email';
+  if(llPass)     llPass.textContent     = ar ? 'كلمة المرور'       : 'Password';
+  if(llLoginBtn) llLoginBtn.textContent = ar ? 'دخول'              : 'Sign In';
+  if(lEmail)     lEmail.placeholder     = 'your@email.com';
+  if(lPass)      lPass.placeholder      = '••••••••';
+
+  // Register form
+  const llRname  = document.getElementById('ll-rname');
+  const llRemail = document.getElementById('ll-remail');
+  const llRpass  = document.getElementById('ll-rpass');
+  const llRpass2 = document.getElementById('ll-rpass2');
+  const llRegBtn = document.getElementById('ll-regBtn');
+  const rName    = document.getElementById('r-name');
+  const rEmail   = document.getElementById('r-email');
+  const rPass    = document.getElementById('r-pass');
+  const rPass2   = document.getElementById('r-pass2');
+  if(llRname)  llRname.textContent  = ar ? 'الاسم الكامل'           : 'Full Name';
+  if(llRemail) llRemail.textContent = ar ? 'البريد الإلكتروني'      : 'Email';
+  if(llRpass)  llRpass.textContent  = ar ? 'كلمة المرور'            : 'Password';
+  if(llRpass2) llRpass2.textContent = ar ? 'تأكيد كلمة المرور'      : 'Confirm Password';
+  if(llRegBtn) llRegBtn.textContent = ar ? 'إنشاء الحساب'           : 'Create Account';
+  if(rName)    rName.placeholder    = ar ? 'اسمك الكامل'            : 'Your full name';
+  if(rEmail)   rEmail.placeholder   = 'your@email.com';
+  if(rPass)    rPass.placeholder    = ar ? '٦ أحرف على الأقل'       : 'Min. 6 characters';
+  if(rPass2)   rPass2.placeholder   = ar ? 'أعد كتابة كلمة المرور'  : 'Repeat password';
+
+  // Footer
+  const footer = document.getElementById('ll-footer');
+  if(footer) footer.textContent = ar
+    ? 'البيانات محفوظة بشكل خاص على هذا الجهاز.'
+    : 'Your data is stored privately on this device.';
+
+  // Error messages — clear on lang switch
+  ['login-error','register-error'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = '';
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PROFILE & ONBOARDING
+// ══════════════════════════════════════════════════════════════
+let userProfile = null;
+
+async function profileInit(){
+  try{
+    const key = currentUser ? 'profile:'+currentUser.email : 'userprofile';
+    const r = await store.get(key);
+    userProfile = r ? JSON.parse(r.value) : null;
+  } catch(e){ userProfile = null; }
+
+  // show app shell
+  safeClass('.tab-bar', 'remove', 'hidden');
+
+  if(!userProfile){
+    document.getElementById('onboarding').classList.remove('hidden');
+  } else {
+    switchTab('home');
+  }
+}
+
+async function saveProfile(){
+  const name     = document.getElementById('ob-name').value.trim();
+  const thesis   = document.getElementById('ob-thesis').value.trim();
+  const sup      = document.getElementById('ob-sup').value.trim();
+  const uni      = document.getElementById('ob-uni').value.trim();
+  const deadline = document.getElementById('ob-deadline').value;
+
+  if(!name || !thesis){ 
+    alert(LANG==='ar' ? 'يرجى إدخال الاسم وعنوان البحث على الأقل.' : 'Please enter at least your name and research title.');
+    return;
+  }
+  userProfile = { name, thesis, sup, uni, deadline };
+  const key = currentUser ? 'profile:'+currentUser.email : 'userprofile';
+  try{ await store.set(key, JSON.stringify(userProfile), false); } catch(e){}
+  document.getElementById('onboarding').classList.add('hidden');
+  switchTab('home');
+}
+
+function doLogout(){
+  const msg = LANG==='ar'
+    ? 'هل تريد تسجيل الخروج؟ البيانات محفوظة.'
+    : 'Log out? Your data is saved and will be here when you return.';
+  if(!window.confirm(msg)) return;
+
+  currentUser = null;
+  userProfile = null;
+
+  safeClass('.tab-bar',   'add', 'hidden');
+  safeClass('.wrap',      'add', 'hidden');
+  safeClass('home-panel', 'add', 'hidden');
+  safeClass('lit-panel',  'add', 'hidden');
+  safeClass('onboarding', 'add', 'hidden');
+
+  ['l-email','l-pass','r-name','r-email','r-pass','r-pass2'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  ['login-error','register-error'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.textContent='';
+  });
+  setLoginMode('login');
+  safeClass('loginScreen', 'remove', 'hidden');
+}
+
+function openEditProfile(){
+  if(!userProfile) return;
+  document.getElementById('ob-name').value     = userProfile.name || '';
+  document.getElementById('ob-thesis').value   = userProfile.thesis || '';
+  document.getElementById('ob-sup').value      = userProfile.sup || '';
+  document.getElementById('ob-uni').value      = userProfile.uni || '';
+  document.getElementById('ob-deadline').value = userProfile.deadline || '';
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+function renderDashboard(){
+  if(!userProfile) return;
+  const u = UI[LANG];
+
+  // Hero
+  const greeting = LANG==='ar' ? `أهلاً، ${userProfile.name}` : `Welcome back, ${userProfile.name}`;
+  document.getElementById('dash-greeting').textContent = greeting;
+  document.getElementById('dash-title').textContent = userProfile.thesis || '—';
+  document.getElementById('dash-sup').textContent  = userProfile.sup  ? (LANG==='ar'?'المشرف: ':'Supervisor: ') + userProfile.sup  : '';
+  document.getElementById('dash-uni').textContent  = userProfile.uni  || '';
+
+  // Days remaining
+  const daysEl  = document.getElementById('dash-days');
+  const daysSub = document.getElementById('dash-days-sub');
+  if(userProfile.deadline){
+    const diff = Math.ceil((new Date(userProfile.deadline) - new Date()) / 86400000);
+    daysEl.textContent = diff > 0 ? diff : '0';
+    daysSub.textContent = diff > 0
+      ? (LANG==='ar' ? 'يوم متبقي' : 'days remaining')
+      : (LANG==='ar' ? 'انتهى الموعد' : 'deadline passed');
+    daysEl.style.color = diff < 30 ? 'var(--terracotta)' : 'var(--cream)';
+    document.getElementById('dash-deadline').textContent = 
+      (LANG==='ar'?'التسليم: ':'Due: ') + new Date(userProfile.deadline).toLocaleDateString();
+  } else {
+    daysEl.textContent = '—';
+    document.getElementById('dash-deadline').textContent = '';
+  }
+
+  // Overall progress from checkboxes
+  const allBoxes     = document.querySelectorAll('#chapters input[type=checkbox]');
+  const doneBoxes    = document.querySelectorAll('#chapters input[type=checkbox]:checked');
+  const pct = allBoxes.length ? Math.round(doneBoxes.length/allBoxes.length*100) : 0;
+  document.getElementById('dash-overall-pct').textContent = pct + '%';
+  document.getElementById('dash-overall-sub').textContent = 
+    `${doneBoxes.length} / ${allBoxes.length} ${LANG==='ar'?'قسم مكتمل':'sections done'}`;
+
+  // Words
+  const editors = document.querySelectorAll('.page-editor');
+  let totalW = 0;
+  editors.forEach(ed => { totalW += countWords(ed.innerText||''); });
+  document.getElementById('dash-words').textContent = totalW.toLocaleString();
+
+  // Lit count
+  document.getElementById('dash-lit-count').textContent = litRows.length;
+
+  // Chapter progress bars
+  const ringsEl = document.getElementById('dash-chapter-rings');
+  ringsEl.innerHTML = '';
+  const chapterDivs = document.querySelectorAll('.chapter');
+  const chapterTitles = [];
+  document.querySelectorAll('.chapter-info h3').forEach(h => chapterTitles.push(h.textContent));
+  chapterDivs.forEach((div, ci) => {
+    const boxes = div.querySelectorAll('input[type=checkbox]');
+    const done  = div.querySelectorAll('input[type=checkbox]:checked');
+    const p = boxes.length ? Math.round(done.length/boxes.length*100) : 0;
+    const shortTitle = chapterTitles[ci] || `Ch. ${ci+1}`;
+    ringsEl.innerHTML += `
+      <div class="ring-row">
+        <div class="ring-label">${shortTitle}</div>
+        <div class="ring-bar-outer"><div class="ring-bar-inner" style="width:${p}%"></div></div>
+        <div class="ring-pct">${p}%</div>
+      </div>`;
+  });
+
+  // labels
+  document.getElementById('t-overallLabel').textContent = LANG==='ar' ? 'التقدم الإجمالي' : 'Overall Progress';
+  document.getElementById('t-wordsLabel').textContent   = LANG==='ar' ? 'إجمالي الكلمات' : 'Total Words';
+  document.getElementById('t-wordsSub').textContent     = LANG==='ar' ? 'الهدف: ١٥٬٠٠٠ – ٢٠٬٠٠٠' : 'Target: 15,000 – 20,000';
+  document.getElementById('t-litLabel').textContent     = LANG==='ar' ? 'دراسات المراجع' : 'Literature Studies';
+  document.getElementById('t-litSub').textContent       = LANG==='ar' ? 'دراسة مُسجَّلة' : 'studies logged';
+  document.getElementById('t-daysLabel').textContent    = LANG==='ar' ? 'الأيام المتبقية' : 'Days Remaining';
+  document.getElementById('t-chaptersLabel').textContent= LANG==='ar' ? 'تقدم الفصول' : 'Chapter Progress';
+  document.getElementById('t-editBtn').textContent    = LANG==='ar' ? '✎ تعديل' : '✎ Edit';
+  const logoutBtn = document.getElementById('t-logoutBtn');
+  if(logoutBtn) logoutBtn.textContent = LANG==='ar' ? '⏻ خروج' : '⏻ Logout';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════════════════════════════════════
+function switchTab(tab){
+  ['home','thesis','lit'].forEach(t => {
+    const btn = document.getElementById('tab-'+t);
+    if(btn) btn.classList.toggle('active', t===tab);
+  });
+  safeClass('home-panel', tab==='home'  ? 'remove':'add', 'hidden');
+  const wrap = document.querySelector('.wrap');
+  if(wrap) wrap.classList.toggle('hidden', tab!=='thesis');
+  safeClass('lit-panel',  tab==='lit'   ? 'remove':'add', 'hidden');
+
+  if(tab==='home') renderDashboard();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LITERATURE REVIEW MODULE
+// ══════════════════════════════════════════════════════════════
+const LIT_COLS = [
+  {id:'author',    label:'Author(s)',            ph:'e.g. Smith, J.',      w:'120px', type:'input'},
+  {id:'year',      label:'Year',                 ph:'2024',                w:'56px',  type:'input'},
+  {id:'title',     label:'Title',                ph:'Paste full title…',   w:'200px', type:'textarea'},
+  {id:'journal',   label:'Journal / Source',     ph:'Journal name…',       w:'140px', type:'input'},
+  {id:'country',   label:'Country / Context',    ph:'e.g. UK',         w:'100px', type:'input'},
+  {id:'method',    label:'Methodology',          ph:'Quantitative – PLS…', w:'120px', type:'textarea'},
+  {id:'variables', label:'Key Variables',        ph:'IV, DV, Mediator…',   w:'130px', type:'textarea'},
+  {id:'findings',  label:'Key Findings',         ph:'Main result…',        w:'180px', type:'textarea'},
+  {id:'gap',       label:'Gap Identified',       ph:'What it missed…',     w:'150px', type:'textarea'},
+  {id:'relevance', label:'Relevance to Study',   ph:'How it helps you…',   w:'160px', type:'textarea'},
+];
+
+let litRows = [];
+let litSaveTimer = null;
+
+async function litInit(){
+  try{
+    const r = await store.get('litrows');
+    litRows = r ? JSON.parse(r.value) : [];
+  } catch(e){ litRows = []; }
+  if(litRows.length === 0){
+    litRows = [
+      {id:Date.now(), author:'Smith & Johnson', year:'2023',
+       title:'Social media engagement and consumer purchase behavior: A systematic review',
+       journal:'Journal of Business Research', country:'United Kingdom',
+       method:'Quantitative – Survey', variables:'Social media engagement; Purchase behavior; Brand trust',
+       findings:'Higher engagement levels were positively associated with purchase behavior across product categories.',
+       gap:'Limited evidence from emerging markets; no longitudinal design.',
+       relevance:'Example row — replace with your own studies using the + Add Study button.'},
+    ];
+  }
+  renderLitTable();
+}
+
+function renderLitTable(){
+  const tbody = document.getElementById('lit-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  litRows.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+    // Row number + actions
+    const tdNum = document.createElement('td');
+    tdNum.className = 'td-num';
+    tdNum.innerHTML = `
+      <div>${idx+1}</div>
+      <button class="row-del-btn" onclick="litDeleteRow('${row.id}')">✕</button>
+    `;
+    tr.appendChild(tdNum);
+
+    LIT_COLS.forEach(col => {
+      const td = document.createElement('td');
+      if(col.type === 'textarea'){
+        const ta = document.createElement('textarea');
+        ta.rows = 3; ta.placeholder = col.ph;
+        ta.value = row[col.id] || '';
+        ta.oninput = () => { litRows[idx][col.id] = ta.value; litSave(); };
+        td.appendChild(ta);
+      } else {
+        const inp = document.createElement('input');
+        inp.type = 'text'; inp.placeholder = col.ph;
+        inp.value = row[col.id] || '';
+        inp.oninput = () => { litRows[idx][col.id] = inp.value; litSave(); };
+        td.appendChild(inp);
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  renderLitStats();
+}
+
+function renderLitStats(){
+  const total = litRows.length;
+  const filled = litRows.filter(r => r.author && r.findings).length;
+  const quant = litRows.filter(r => (r.method||'').toLowerCase().includes('quant')).length;
+  const post20 = litRows.filter(r => parseInt(r.year) >= 2020).length;
+  document.getElementById('lit-stat-total').innerHTML = `Total: <span>${total}</span>`;
+  document.getElementById('lit-stat-filled').innerHTML = `Complete: <span>${filled}</span>`;
+  document.getElementById('lit-stat-quant').innerHTML = `Quantitative: <span>${quant}</span>`;
+  document.getElementById('lit-stat-post20').innerHTML = `Post-2020: <span>${post20}</span>`;
+}
+
+function litAddRow(){
+  litRows.push({id:Date.now(), author:'',year:'',title:'',journal:'',country:'',method:'',variables:'',findings:'',gap:'',relevance:''});
+  renderLitTable();
+  litSave();
+}
+
+function litDeleteRow(id){
+  litRows = litRows.filter(r => String(r.id) !== String(id));
+  renderLitTable();
+  litSave();
+}
+
+function litSave(){
+  renderLitStats();
+  if(litSaveTimer) clearTimeout(litSaveTimer);
+  litSaveTimer = setTimeout(async () => {
+    try{ await store.set('litrows', JSON.stringify(litRows), false); } catch(e){}
+  }, 800);
+}
+
+
+function litExportExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Export library not loaded. Please check your connection.'); return; }
+  const headers = ['#','Author(s)','Year','Title','Journal / Source','Country / Context','Methodology','Key Variables','Key Findings','Gap Identified','Relevance to Study'];
+  const rows = litRows.map((r,i) => [i+1, r.author, r.year, r.title, r.journal, r.country, r.method, r.variables, r.findings, r.gap, r.relevance]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // column widths
+  ws['!cols'] = [8,22,8,40,28,18,22,26,38,30,34].map(w => ({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Literature Review');
+  XLSX.writeFile(wb, 'Literature_Review_Matrix.xlsx');
+}
+
+function safeClass(id, method, cls){
+  const el = typeof id === 'string'
+    ? (id.startsWith('.') ? document.querySelector(id) : document.getElementById(id))
+    : id;
+  if(el) el.classList[method](cls);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setLang('en');
+  safeClass('.tab-bar',    'add', 'hidden');
+  safeClass('.wrap',       'add', 'hidden');
+  safeClass('home-panel',  'add', 'hidden');
+  safeClass('lit-panel',   'add', 'hidden');
+
+  setTimeout(async () => {
+    await litInit();
+    await profileInit();
+  }, 100);
+});
+</script>
+
+<!-- Literature Review Panel -->
+<div id="lit-panel" class="lit-wrap hidden">
+  <div class="lit-header">
+    <h2>Literature Review Matrix</h2>
+    <p>Add and organize the studies for your literature review — then export the full matrix to Excel.</p>
+  </div>
+  <div class="lit-stats">
+    <div class="stat-pill" id="lit-stat-total">Total: <span>0</span></div>
+    <div class="stat-pill" id="lit-stat-filled">Complete: <span>0</span></div>
+    <div class="stat-pill" id="lit-stat-quant">Quantitative: <span>0</span></div>
+    <div class="stat-pill" id="lit-stat-post20">Post-2020: <span>0</span></div>
+  </div>
+  <div class="lit-actions">
+    <button class="btn btn-primary" onclick="litAddRow()">+ Add Study</button>
+    <button class="btn btn-ghost" onclick="litExportExcel()">⤓ Export to Excel</button>
+  </div>
+  <div class="lit-table-wrap">
+    <table class="lit">
+      <thead>
+        <tr>
+          <th style="width:64px">#</th>
+          <th style="min-width:120px">Author(s)</th>
+          <th style="width:58px">Year</th>
+          <th style="min-width:200px">Title</th>
+          <th style="min-width:140px">Journal / Source</th>
+          <th style="min-width:100px">Country</th>
+          <th style="min-width:120px">Methodology</th>
+          <th style="min-width:130px">Key Variables</th>
+          <th style="min-width:180px">Key Findings</th>
+          <th style="min-width:150px">Gap Identified</th>
+          <th style="min-width:160px">Relevance to Study</th>
+        </tr>
+      </thead>
+      <tbody id="lit-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
